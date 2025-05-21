@@ -4,7 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, EqualTo
 
 app = Flask(__name__)
 app.secret_key = 'ixlqec7($q$7u2x7o@ixqt2pr-$i)v3_sn7lcn_%pk^*m--tt0'  # Change this to a secure secret key
@@ -25,7 +25,14 @@ class User(UserMixin, db.Model):
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Login')
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Repeat Password', validators=[DataRequired(),
+                                      EqualTo('password', message='Passwords must match.')])
+    submit = SubmitField('Register')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -38,22 +45,28 @@ def home():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    form = LoginForm()
+    form = RegistrationForm()
     if form.validate_on_submit():
         username = form.username.data
         password_unhashed = form.password.data  # TODO 5.
-
+        confirm_password = form.confirm_password.data
         password = bcrypt.generate_password_hash(password_unhashed) # TODO 5.
 
         user = User.query.filter_by(username=username).first()
         if user:
             flash("Username already exists", "error")
             return render_template('register.html', form=form)
+
         new_user = User(username=username, password=password)
         db.session.add(new_user)
         db.session.commit()
         flash("User successfully registered", "success")
         return redirect(url_for('login'))
+    
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(error, 'error')
+
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
