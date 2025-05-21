@@ -1,0 +1,40 @@
+<!-- base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Flask App{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="navbar">
+      <a
+        class="{% if active == 'home' %}active{% endif %}"
+        href="{{ url_for('home') }}"
+        >Home</a
+      >
+      {% if current_user.is_authenticated %}
+      <!-- TODO 2 ? -->
+      <a href="{{ url_for('logout') }}">Logout</a>
+      <span>Hello, {{ username }}!</span>
+      {% else %}
+      <a href="{{ url_for('register') }}">Register</a>
+      <a href="{{ url_for('login') }}">Login</a>
+      {% endif %}
+    </div>
+    <!-- TODO 1. -->
+    <div>
+      {% with messages = get_flashed_messages(with_categories = True)%} {% if
+      messages%} {% for category, message in messages%}
+      <div class="flash-{{category}}">{{message}}</div>
+      {% endfor %} {% endif %} {% endwith %}
+    </div>
+    {% block content %} {% endblock %}
+  </body>
+</html>
