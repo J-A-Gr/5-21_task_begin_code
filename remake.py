@@ -5,6 +5,7 @@ from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo
+# from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
 app.secret_key = 'ixlqec7($q$7u2x7o@ixqt2pr-$i)v3_sn7lcn_%pk^*m--tt0'  # Change this to a secure secret key
@@ -20,6 +21,15 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    posts = db.relationship('Post', back_populates='author')
+
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    author = db.relationship('User', back_populates='posts')
 
 
 class LoginForm(FlaskForm):
@@ -41,7 +51,8 @@ def load_user(user_id):
 
 @app.route('/')  # TODO 2 ../..
 def home():
-    return render_template('index.html')
+    posts = Post.query.all()
+    return render_template('index.html', posts=posts)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -49,7 +60,6 @@ def register():
     if form.validate_on_submit():
         username = form.username.data
         password_unhashed = form.password.data  # TODO 5.
-        confirm_password = form.confirm_password.data
         password = bcrypt.generate_password_hash(password_unhashed) # TODO 5.
 
         user = User.query.filter_by(username=username).first()
@@ -84,6 +94,24 @@ def login():
             flash("Incorect password", "error")
             return render_template('login.html', form=form)
     return render_template('login.html', form=form)
+
+@app.route('/post/new', methods=['GET', 'POST'])
+@login_required
+def new_post():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        post = Post(title=title, content=content, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        return redirect(url_for('home'))
+    return render_template('create_post.html', title='New Post')
+
+@app.route('/post/<int:post_id>')
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html', title=post.title, post=post)
+
 
 
 @app.route('/logout')

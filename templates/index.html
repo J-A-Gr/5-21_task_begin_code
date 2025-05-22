@@ -1,7 +1,15 @@
-{% extends "base.html" %}
-
-{% block title %}Home{% endblock %}
-
-{% block content %}
-    <h1>Welcome to the Home Page</h1>
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
+%}
+<div class="content-section">
+  <h2>All Posts</h2>
+  <ul>
+    {% for post in posts %}
+    <li>
+      <h3>{{ post.title }}</h3>
+      <p>{{ post.content }}</p>
+      <p>Posted by: {{ post.author.username }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
 {% endblock %}
