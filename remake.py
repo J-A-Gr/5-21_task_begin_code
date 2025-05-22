@@ -5,6 +5,7 @@ from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo
+from datetime import datetime
 # from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
@@ -28,6 +29,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now())
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship('User', back_populates='posts')
 

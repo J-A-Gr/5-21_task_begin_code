@@ -7,6 +7,7 @@
     <li>
       <h3>{{ post.title }}</h3>
       <p>{{ post.content }}</p>
+      <p>Posted on: {{ post.date_posted.strftime('%Y-%m-%d') }}</p>
       <p>Posted by: {{ post.author.username }}</p>
     </li>
     {% endfor %}
